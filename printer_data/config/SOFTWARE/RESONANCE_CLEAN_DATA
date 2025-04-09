@@ -1,0 +1,113 @@
+# THIS IS A SCRIPT IN ORDER TO CLEAN AND EVALUATE THE RESONANCE RESPONSE AFTER RUNING RESONANCE TESTS IN KLIPPER
+# IT MUST BE EXECUTED IN R-STUDIO
+
+# FOR X AXIS RUN THIS:  (Ensure to update de input_file and output sections to the desired files)
+
+
+# Cargar librerías necesarias
+if(!require(rootSolve)) install.packages("rootSolve")
+if(!require(ggplot2)) install.packages("ggplot2")
+library(rootSolve)
+library(ggplot2)
+
+# Configuración de parámetros
+input_file <- "C:/Users/USER/Desktop/resonances_x_20241217_124310.csv"  # Ruta del archivo original
+output_file <- sub(".csv", "_filtered_X.csv", input_file)  # Salida en la misma ruta con nombre modificado
+axis_to_filter <- "X"  # Especifica "X"
+
+# Leer el archivo CSV
+resonances <- read.csv(input_file)
+
+# Filtrar únicamente la componente correspondiente al eje especificado
+if (axis_to_filter == "X") {
+  filtered_data <- data.frame(freq = resonances$freq, psd_filtered = resonances$psd_x)
+} else {
+  stop("Eje no válido. Usa 'X'.")
+}
+
+# Guardar el archivo CSV filtrado
+write.csv(filtered_data, file = output_file, row.names = FALSE)
+print(paste("Archivo CSV filtrado guardado en:", output_file))
+
+# Calcular Damping Ratio
+peak_power <- max(filtered_data$psd_filtered)
+peak_freq <- filtered_data$freq[filtered_data$psd_filtered == peak_power]
+half_power <- peak_power / sqrt(2)
+
+roots <- uniroot.all(approxfun(filtered_data$freq, filtered_data$psd_filtered - half_power), c(1, 135))
+Damping_Ratio <- (roots[2] - roots[1]) / (2 * peak_freq)
+
+# Mostrar el resultado del Damping Ratio
+print(paste("Damping Ratio (", axis_to_filter, "):", round(Damping_Ratio, 4), sep = ""))
+
+# Graficar la respuesta filtrada
+plot_result <- ggplot(filtered_data, aes(x = freq, y = psd_filtered)) +
+  geom_line(color = "blue", size = 1) +
+  geom_vline(xintercept = roots, linetype = "dashed", color = "red") +
+  geom_point(aes(x = peak_freq, y = peak_power), color = "orange", size = 2) +
+  ggtitle(paste("Frequency Response - Axis", axis_to_filter)) +
+  xlab("Frequency [Hz]") +
+  ylab("Power Spectral Density") +
+  theme_minimal()
+
+# Mostrar el gráfico
+print(plot_result)
+
+
+
+
+
+
+# FOR Y AXIS RUN THIS:
+
+# Cargar librerías necesarias
+if(!require(rootSolve)) install.packages("rootSolve")
+if(!require(ggplot2)) install.packages("ggplot2")
+library(rootSolve)
+library(ggplot2)
+
+# Configuración de parámetros
+input_file <- "C:/Users/USER/Desktop/resonances_y_20241217_125113.csv"  # Ruta del archivo original
+output_file <- sub(".csv", "_filtered_Y.csv", input_file)  # Salida en la misma ruta con nombre modificado
+axis_to_filter <- "Y"  # Especifica "X" o "Y"
+
+# Leer el archivo CSV
+resonances <- read.csv(input_file)
+
+# Filtrar únicamente la componente correspondiente al eje especificado
+if (axis_to_filter == "Y") {
+  filtered_data <- data.frame(freq = resonances$freq, psd_filtered = resonances$psd_y)
+} else if (axis_to_filter == "X") {
+  filtered_data <- data.frame(freq = resonances$freq, psd_filtered = resonances$psd_x)
+} else {
+  stop("Eje no válido. Usa 'X' o 'Y'.")
+}
+
+# Guardar el archivo CSV filtrado
+write.csv(filtered_data, file = output_file, row.names = FALSE)
+print(paste("Archivo CSV filtrado guardado en:", output_file))
+
+# Calcular Damping Ratio
+peak_power <- max(filtered_data$psd_filtered)
+peak_freq <- filtered_data$freq[filtered_data$psd_filtered == peak_power]
+half_power <- peak_power / sqrt(2)
+
+roots <- uniroot.all(approxfun(filtered_data$freq, filtered_data$psd_filtered - half_power), c(1, 135))
+Damping_Ratio <- (roots[2] - roots[1]) / (2 * peak_freq)
+
+# Mostrar el resultado del Damping Ratio
+print(paste("Damping Ratio (", axis_to_filter, "):", round(Damping_Ratio, 4), sep = ""))
+
+# Graficar la respuesta filtrada
+plot_result <- ggplot(filtered_data, aes(x = freq, y = psd_filtered)) +
+  geom_line(color = "blue", size = 1) +
+  geom_vline(xintercept = roots, linetype = "dashed", color = "red") +
+  geom_point(aes(x = peak_freq, y = peak_power), color = "orange", size = 2) +
+  ggtitle(paste("Frequency Response - Axis", axis_to_filter)) +
+  xlab("Frequency [Hz]") +
+  ylab("Power Spectral Density") +
+  theme_minimal()
+
+# Mostrar el gráfico
+print(plot_result)
+
